@@ -2,7 +2,6 @@ import logging
 import pytest
 import requests
 
-#testing for commit
 from meal_max.utils.logger import configure_logger
 from meal_max.utils.random_utils import get_random
 
