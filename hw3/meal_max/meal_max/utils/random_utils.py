@@ -1,6 +1,9 @@
 import logging
 import requests
 
+import sys
+sys.path.append('../../')
+
 from meal_max.utils.logger import configure_logger
 
 logger = logging.getLogger(__name__)
