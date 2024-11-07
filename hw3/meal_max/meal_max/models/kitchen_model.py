@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 import logging
+import os
 import sqlite3
 from typing import Any
 
@@ -20,6 +21,14 @@ class Meal:
     difficulty: str
 
     def __post_init__(self):
+        '''
+        Add attributes to Meal object post initialization
+
+        Args:
+            self: the meal instance
+        Returns:
+            None: The function doesn't return a value
+        '''
         if self.price < 0:
             raise ValueError("Price must be a positive value.")
         if self.difficulty not in ['LOW', 'MED', 'HIGH']:
@@ -27,6 +36,18 @@ class Meal:
 
 
 def create_meal(meal: str, cuisine: str, price: float, difficulty: str) -> None:
+    '''
+    Adds a meal to the database
+
+    Args:
+        meal (str): The meal to create
+        cuisine (float): The cuisine create
+        price (str): The price to create
+        difficulty (str): The difficulty to create
+    
+    Returns:
+        None: The function doesn't return a value
+    '''
     if not isinstance(price, (int, float)) or price <= 0:
         raise ValueError(f"Invalid price: {price}. Price must be a positive number.")
     if difficulty not in ['LOW', 'MED', 'HIGH']:
@@ -51,8 +72,37 @@ def create_meal(meal: str, cuisine: str, price: float, difficulty: str) -> None:
         logger.error("Database error: %s", str(e))
         raise e
 
+def clear_meals() -> None:
+    """
+    Recreates the meals table, effectively deleting all meals.
+
+    Raises:
+        sqlite3.Error: If any database error occurs.
+    """
+    try:
+        with open(os.getenv("SQL_CREATE_TABLE_PATH", "/app/sql/create_meal_table.sql"), "r") as fh:
+            create_table_script = fh.read()
+        with get_db_connection() as conn:
+            cursor = conn.cursor()
+            cursor.executescript(create_table_script)
+            conn.commit()
+
+            logger.info("Meals cleared successfully.")
+
+    except sqlite3.Error as e:
+        logger.error("Database error while clearing meals: %s", str(e))
+        raise e
 
 def delete_meal(meal_id: int) -> None:
+    '''
+    Deletes a meal from the database
+
+    Args:
+        meal_id (int): The id for the meal instance
+    
+    Returns:
+        None: The function doesn't return a value
+    '''
     try:
         with get_db_connection() as conn:
             cursor = conn.cursor()
@@ -76,6 +126,15 @@ def delete_meal(meal_id: int) -> None:
         raise e
 
 def get_leaderboard(sort_by: str="wins") -> dict[str, Any]:
+    '''
+    Gets the leaderboard from the database sorted by the given sort_by parameter
+
+    Args:
+        sort_by (str): The column to sort the leaderboard by
+    
+    Returns:
+        dict[str, Any]: The leaderboard
+    '''
     query = """
         SELECT id, meal, cuisine, price, difficulty, battles, wins, (wins * 1.0 / battles) AS win_pct
         FROM meals WHERE deleted = false AND battles > 0
@@ -117,6 +176,15 @@ def get_leaderboard(sort_by: str="wins") -> dict[str, Any]:
         raise e
 
 def get_meal_by_id(meal_id: int) -> Meal:
+    '''
+    Gets the Meal instance in the database cooresponding to the given id
+
+    Args:
+        meal_id (int): The id of the meal to fetch
+    
+    Returns:
+        Meal: The Meal instance
+    '''
     try:
         with get_db_connection() as conn:
             cursor = conn.cursor()
@@ -138,6 +206,15 @@ def get_meal_by_id(meal_id: int) -> Meal:
 
 
 def get_meal_by_name(meal_name: str) -> Meal:
+    '''
+    Gets the Meal instance in the database cooresponding to the given name
+
+    Args:
+        meal_name (str): The name of the meal to fetch
+    
+    Returns:
+        Meal: The meal instance
+    '''
     try:
         with get_db_connection() as conn:
             cursor = conn.cursor()
@@ -159,6 +236,16 @@ def get_meal_by_name(meal_name: str) -> Meal:
 
 
 def update_meal_stats(meal_id: int, result: str) -> None:
+    '''
+    Updates the battles and win stats of a meal with the given result
+
+    Args:
+        meal_id (int): The id of the meal to update
+        result (str): The result of the battle. Either win or loss
+    
+    Returns:
+        None: This function doesn't return a value
+    '''
     try:
         with get_db_connection() as conn:
             cursor = conn.cursor()
