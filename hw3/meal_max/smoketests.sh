@@ -216,7 +216,6 @@ check_health
 check_db
 
 #Meals
-clear_meals
 
 create_meal "Bangers and Mash" "British" 3.0 "LOW"
 create_meal "Pad Thai" "Thai" 4.5 "MED"
@@ -233,8 +232,6 @@ get_meal_by_name "Chicken Tikka Masala"
 echo
 
 #Battle
-clear_combatants
-
 prep_combatant "Pad Thai"
 prep_combatant "Tacos"
 
@@ -252,6 +249,7 @@ battle
 
 get_leaderboard
 
+#Reseting back to default state
 clear_combatants
 
 clear_meals
